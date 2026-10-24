@@ -1,0 +1,111 @@
+import User from '../models/User.js';
+import generateToken from '../utils/generateToken.js';
+
+const EMAIL_REGEX = /^\S+@\S+\.\S+$/;
+
+export const registerUser = async (req, res, next) => {
+  try {
+    const { name, email, password } = req.body;
+
+    // Validate
+    if (!name || !email || !password) {
+      res.status(400);
+      throw new Error('Please provide name, email, and password');
+    }
+
+    if (!EMAIL_REGEX.test(email)) {
+      res.status(400);
+      throw new Error('Please provide a valid email address');
+    }
+
+    if (password.length < 6) {
+      res.status(400);
+      throw new Error('Password must be at least 6 characters');
+    }
+
+    const userExists = await User.findOne({ email });
+    if (userExists) {
+      res.status(400);
+      throw new Error('An account with this email already exists');
+    }
+
+    const user = await User.create({ name, email, password });
+
+    // Generate the token
+    generateToken(res, user._id);
+
+    res.status(201).json({
+      success: true,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const loginUser = async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+
+    // Validate
+    if (!email || !password) {
+      res.status(400);
+      throw new Error('Please provide email and password');
+    }
+
+    // Include the password field so the submitted password can be verified
+    const user = await User.findOne({ email }).select('+password');
+
+    if (!user || !(await user.matchPassword(password))) {
+      res.status(401);
+      throw new Error('Invalid email or password');
+    }
+
+    generateToken(res, user._id);
+
+    res.status(200).json({
+      success: true,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const logoutUser = (req, res, next) => {
+  try {
+    res.cookie('jwt', '', {
+      httpOnly: true,
+      expires: new Date(0),
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+    });
+
+    res.status(200).json({ success: true, message: 'Logged out successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getMe = async (req, res, next) => {
+  try {
+    res.status(200).json({
+      success: true,
+      user: {
+        _id: req.user._id,
+        name: req.user.name,
+        email: req.user.email,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
