@@ -183,6 +183,7 @@ const TransactionForm = ({ initial, onSubmit, onCancel }) => {
             name="paymentMethod"
             value={form.paymentMethod}
             onChange={handleChange}
+            required
             className={inputClass}
           >
             {PAYMENT_METHODS.map((m) => (

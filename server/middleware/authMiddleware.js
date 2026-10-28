@@ -17,13 +17,16 @@ export const protect = async (req, res, next) => {
     // Verify the token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
-    // Find the user with password exclude.
-    req.user = await User.findById(decoded.id).select('-password');
+    // Find the user
+    req.user = await User.findById(decoded.id);
 
     if (!req.user) {
       res.status(401);
       return next(new Error('Not authorized, user not found'));
     }
+
+    // Exclude password
+    req.user.password = null;
 
     next();
   } catch (error) {

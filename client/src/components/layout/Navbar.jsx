@@ -89,7 +89,7 @@ const Navbar = () => {
           </li>
         )}
 
-        <li className="relative" ref={profileRef}>
+        <li ref={profileRef}>
           <button
             onClick={() => setIsProfile(true)}
             className="text-gray-700 hover:text-blue-600 transition-colors p-2 hover:bg-blue-50 rounded-full"
@@ -100,7 +100,7 @@ const Navbar = () => {
           </button>
 
           {isProfile && user && (
-            <div className="absolute top-14 left-0 min-[365px]:left-auto min-[365px]:right-0 w-72 max-w-[50vw] bg-white/95 backdrop-blur-md shadow-2xl border border-gray-200/50 rounded-2xl overflow-hidden">
+            <div className="absolute top-full mt-2 right-3 md:right-6 w-72 max-w-[90vw] bg-white/95 backdrop-blur-md shadow-2xl border border-gray-200/50 rounded-2xl overflow-hidden">
               <div className="bg-gradient-to-br from-blue-500 via-blue-600 to-green-500 px-5 py-6">
                 <div className="flex items-center gap-3">
                   <div className="h-12 w-12 shrink-0 rounded-full bg-white/20 border-2 border-white/30 flex items-center justify-center text-white font-bold text-xl">

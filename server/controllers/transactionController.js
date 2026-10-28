@@ -6,9 +6,9 @@ export const createTransaction = async (req, res, next) => {
       req.body;
 
     // Validate
-    if (!type || !category || !amount) {
+    if (!type || !category || !amount || !paymentMethod) {
       res.status(400);
-      throw new Error("Please provide type, category, and amount");
+      throw new Error("Please provide type, category, amount and payment method");
     }
 
     if (!["income", "expense"].includes(type)) {
@@ -39,49 +39,13 @@ export const createTransaction = async (req, res, next) => {
 
 export const getTransactions = async (req, res, next) => {
   try {
-    const { type, category, startDate, endDate } = req.query;
-
-    // Build the query filters
-    const filter = { user: req.user._id };
-
-    if (type) filter.type = type;
-    if (category) filter.category = category;
-
-    // Apply the selected date range to the transaction query.
-    if (startDate || endDate) {
-      filter.date = {};
-      if (startDate) filter.date.$gte = new Date(startDate);
-      if (endDate) filter.date.$lte = new Date(endDate);
-    }
-
-    const transactions = await Transaction.find(filter).sort({ date: -1 });
+    const transactions = await Transaction.find({ user: req.user._id }).sort({ date: -1 });
 
     res.status(200).json({
       success: true,
-      count: transactions.length,
       transactions,
     });
-  } catch (error) {
-    next(error);
-  }
-};
 
-export const getTransactionById = async (req, res, next) => {
-  try {
-    const transaction = await Transaction.findById(req.params.id);
-
-    // Validate
-    if (!transaction) {
-      res.status(404);
-      throw new Error("Transaction not found");
-    }
-
-    if (transaction.user.toString() !== req.user._id.toString()) {
-      res.status(403);
-      throw new Error("Not authorized to access this transaction");
-    }
-
-    res.status(200).json({ success: true, transaction });
   } catch (error) {
     next(error);
   }
@@ -102,8 +66,7 @@ export const updateTransaction = async (req, res, next) => {
       throw new Error("Not authorized to update this transaction");
     }
 
-    const { type, category, amount, description, date, paymentMethod } =
-      req.body;
+    const { type, category, amount, description, date, paymentMethod } = req.body;
 
     if (type && !["income", "expense"].includes(type)) {
       res.status(400);
@@ -118,7 +81,7 @@ export const updateTransaction = async (req, res, next) => {
     transaction = await Transaction.findByIdAndUpdate(
       req.params.id,
       { type, category, amount, description, date, paymentMethod },
-      { new: true, runValidators: true },
+      { new: true }
     );
 
     res.status(200).json({ success: true, transaction });

@@ -1,3 +1,4 @@
+import bcrypt from 'bcryptjs';
 import User from '../models/User.js';
 import generateToken from '../utils/generateToken.js';
 
@@ -24,14 +25,20 @@ export const registerUser = async (req, res, next) => {
     }
 
     const userExists = await User.findOne({ email });
+
     if (userExists) {
       res.status(400);
       throw new Error('An account with this email already exists');
     }
 
-    const user = await User.create({ name, email, password });
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Generate the token
+    const user = await User.create({
+      name,
+      email,
+      password: hashedPassword,
+    });
+
     generateToken(res, user._id);
 
     res.status(201).json({
@@ -57,10 +64,9 @@ export const loginUser = async (req, res, next) => {
       throw new Error('Please provide email and password');
     }
 
-    // Include the password field so the submitted password can be verified
-    const user = await User.findOne({ email }).select('+password');
+    const user = await User.findOne({ email });
 
-    if (!user || !(await user.matchPassword(password))) {
+    if (!user || !(await bcrypt.compare(password, user.password))) {
       res.status(401);
       throw new Error('Invalid email or password');
     }
@@ -85,8 +91,8 @@ export const logoutUser = (req, res, next) => {
     res.cookie('jwt', '', {
       httpOnly: true,
       expires: new Date(0),
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: process.env.SECURE,
+      sameSite: process.env.SAMESITE
     });
 
     res.status(200).json({ success: true, message: 'Logged out successfully' });

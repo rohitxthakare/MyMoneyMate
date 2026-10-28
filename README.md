@@ -28,6 +28,7 @@
 * View saving rate, expense ratio, and top spending category.
 * Get AI-powered spending analysis, budget recommendations, personalized saving suggestions, and estimated savings opportunities using recent transaction data.
 * Limit AI-powered spending analysis, resetting the limit the next day.
+* Test frontend features to improve application reliability and ensure expected behavior.
 
 ## Tech Stack
 
@@ -37,13 +38,14 @@
 | UI Styling | Tailwind CSS |
 | Charts | Recharts |
 | Backend | Node.js, Express.js |
-| Database | MongoDB, Mongoose |
+| Database | MongoDB |
 | Authentication | JWT, bcryptjs |
 | AI Features | AI API |
 | API Communication | REST APIs, Axios |
 | Routing | React Router |
 | Icons | React Icons |
 | Deployment | Vercel |
+| Testing | Jest, RTL, MSW |
 
 ## Project Structure
 
@@ -82,6 +84,27 @@ MyMoneyMate/
 │   │   │       └── Transactions.jsx
 │   │   ├── routes/
 │   │   │   └── ProtectedRoute.jsx
+│   │   ├── test/
+│   │   │   ├── context/
+│   │   │   │   ├── AuthContext.test.jsx
+│   │   │   │   └── TransactionContext.test.jsx
+│   │   │   ├── pages/
+│   │   │   │   ├── assistant/
+│   │   │   │   │   └── Assistant.test.jsx
+│   │   │   │   ├── auth/
+│   │   │   │   │   ├── Login.test.jsx
+│   │   │   │   │   └── Register.test.jsx
+│   │   │   │   ├── dashboard/
+│   │   │   │   │   ├── Dashboard.test.jsx
+│   │   │   │   │   └── RecentTransactions.test.jsx
+│   │   │   │   └── transactions/
+│   │   │   │       ├── TransactionForm.test.jsx
+│   │   │   │       └── Transactions.test.jsx
+│   │   │   ├── routes/
+│   │   │   │   └── ProtectedRoute.test.jsx
+│   │   │   ├── axios.js
+│   │   │   ├── server.js
+│   │   │   └── setup.js
 │   │   ├── utils/
 │   │   │   ├── categories.js
 │   │   │   └── formatCurrency.js
@@ -90,8 +113,11 @@ MyMoneyMate/
 │   │   └── main.jsx
 │   ├── .env
 │   ├── .gitignore
+│   ├── babel.config.cjs
 │   ├── eslint.config.js
 │   ├── index.html
+│   ├── jest.config.cjs
+│   ├── jest.environment.cjs
 │   ├── package-lock.json
 │   ├── package.json
 │   ├── postcss.config.js
@@ -156,8 +182,10 @@ Create a `.env`:
 ```env
 NODE_ENV=development
 PORT=5000
-MONGO_URI=your_mongodb_srv_uri_with_slash_at_the_end_without_db_name_and_options
+MONGO_URI=your_mongodb_uri_with_db_name_and_options
 JWT_SECRET=your_jwt_secret
+SECURE=false
+SAMESITE=none
 CLIENT_URL=http://localhost:5173
 GROQ_API_KEY=your_groq_api_key
 ```
@@ -187,6 +215,19 @@ Run the client:
 npm run dev
 ```
 
+### Run Frontend Tests
+
+```bash
+cd client
+npm test
+```
+
+Test coverage:
+
+```bash
+npm test -- --coverage --coverageReporters=text
+```
+
 ## Platform Workflow
 
 ```text
@@ -207,7 +248,6 @@ User
 | GET | /api/auth/me | Get the authenticated user's details. |
 | POST | /api/transactions | Create a transaction for the authenticated user. |
 | GET | /api/transactions | Get all transactions of the authenticated user. |
-| GET | /api/transactions/:id | Get a transaction by ID for the authenticated user. |
 | PUT | /api/transactions/:id | Update a transaction of the authenticated user. |
 | DELETE | /api/transactions/:id | Delete a transaction of the authenticated user. |
 | GET | /api/dashboard/summary | Get the authenticated user's income, expenses, balance, and category breakdown. |
